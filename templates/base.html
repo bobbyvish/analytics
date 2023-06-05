@@ -32,7 +32,7 @@
 
   var startTime;
 
-  ignore_url = ["/analytics/dashboard/"]
+  ignore_url = ["http://192.168.1.15:8500/analytics/dashboard/"]
 
   function setData(spend){
     localStorage.setItem("spend", JSON.stringify(spend))
@@ -81,7 +81,7 @@
 
     var endTime = new Date();
     var duration = Math.round((endTime - startTime)/1000); // Duration in seconds
-    var url = window.location.pathname
+    var url = window.location.href
 
     const spend = {
       duration : duration,

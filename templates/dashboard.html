@@ -21,11 +21,11 @@
                     {% for page in page_name_hit_exit %}
                     <tr>
                         <td>
-                            <a href="{{page.url}}">{{ page.url}} </a> 
+                            <a href="{{page.url}}">{{ page.url_page_name}} </a> 
                         </td>
                         <td>{{ page.duration}}</td>
-                        <td>{{ page.hit}}</td>
-                        <td>{{ page.exit}}</td>
+                        <td><a href="{% url 'hit_exit_details' %}?url={{page.url}}&type=HIT"> {{ page.hit}}</a></td>
+                        <td><a href="{% url 'hit_exit_details' %}?url={{page.url}}&type=EXIT">{{ page.exit}}</a></td>
                     </tr>
                     {% endfor %}
         

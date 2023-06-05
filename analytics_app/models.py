@@ -13,6 +13,24 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
+def get_geoip_info(ip_address):
+    g= GeoIP2()
+    try:
+        country_data = g.country(ip_address)
+        city_data = g.city(ip_address)
+        return {
+            'country_name': country_data.get("country_name"),
+            'country_code': country_data.get("country_code"),
+            'city_name':    city_data.get("city"),
+            'region' : city_data.get('region'),
+            'postal_code':  city_data.get("postal_code"),
+            'latitude':     city_data.get("latitude"),
+            'longitude':    city_data.get("longitude"),
+        }
+    except Exception as e:
+        print(f"Error retrieving geolocation: {str(e)}")
+        return None
+
 class VisitorActivity(models.Model):
     HIT = "HIT"
     EXIT = "EXIT"
@@ -51,14 +69,14 @@ class VisitorActivity(models.Model):
         self.os = user_agent.os.family if user_agent else None
 
         ip_address = get_client_ip(request)
-        self.ip_address = ip_address
-        g = GeoIP2()
-        print(g.country(ip_address))
-        self.city = response.get('city')
-        self.region = response.get('region')
-        self.country = response.get('country_name')
-        self.latitude = response.get('latitude')
-        self.longitude = response.get('longitude')
+        
+        geoip_info = get_geoip_info(ip_address)
+        if geoip_info:
+            self.city =      geoip_info.get("city")
+            self.region =    geoip_info.get("region")
+            self.country =   geoip_info.get("country_name")
+            self.latitude =  geoip_info.get("latitude")
+            self.longitude = geoip_info.get("longitude")
         
         super(VisitorActivity, self).save(*args, **kwargs)
 

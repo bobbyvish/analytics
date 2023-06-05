@@ -66,13 +66,12 @@ def analytics_data(request):
     return JsonResponse({'message' : "Success", "status":200})
 
 def dashboard(request):
-
     page_name = {
-        "/analytics/index/" : "Home",
-        "/analytics/features/" : "Feature",
-        "/analytics/pricing/" : "Pricing",
-        "/analytics/about/": "About",
-        "/analytics/contact/" : "Contact Us"
+        "http://192.168.1.15:8500/analytics/index/" : "Home",
+        "http://192.168.1.15:8500/analytics/features/" : "Feature",
+        "http://192.168.1.15:8500/analytics/pricing/" : "Pricing",
+        "http://192.168.1.15:8500/analytics/about/": "About",
+        "http://192.168.1.15:8500/analytics/contact/" : "Contact Us"
     }
 
     try:
@@ -115,11 +114,14 @@ def dashboard(request):
     page_name_hit_exit = []
     for data in page_wise_hit_exit:
         temp={}
-        temp["url"] = page_name[data["url"]] if data["url"] in page_name else data["url"]
+        temp["url"] = data["url"]
+        temp["url_page_name"] = page_name[data["url"]] if data["url"] in page_name else data["url"]
         temp["duration"] = data["duration"]
         temp["hit"] = data["hit"]
         temp["exit"] = data["exit"]
         page_name_hit_exit.append(temp)
+    
+    print(f"page_name_hit_exit is {page_name_hit_exit}")
 
     try:
         country_wise_hit_exit = VisitorActivity.objects.filter(page_type__in=[VisitorActivity.HIT, VisitorActivity.EXIT]).values("url").annotate(
@@ -155,6 +157,25 @@ def journey(request):
 
     return render(request, "journey.html", locals())
 
+def hit_exit_details(request):
+    url = request.GET.get("url")
+    type = request.GET.get('type')
+    print(f"url is {url} and type is {type}")
+    try:
+        hit_exit_ip_list = VisitorActivity.objects.filter(url = url , page_type= type).values("ip_address","timestamp", "duration")
+    except Exception as e:
+        print("raise exception in detail_hit_exit", str(e))
+        hit_exit_ip_list = []
+    print(f"hit and exit ip list {hit_exit_ip_list}")
+
+    # if type == VisitorActivity.EXIT:
+    #     try:
+    #         hit_ip_list = VisitorActivity.objects.filter(url = url , page_type= type).values("ip_address","timestamp, duration")
+    #     except Exception as e:
+    #         print("raise exception in detail_hit_exit", str(e))
+        
+    return render(request, "hit_exit_details.html", locals())
+
 def index(request):
 
     return render(request, "index.html")
@@ -170,3 +191,63 @@ def pricing(request):
 
 def features(request):
     return render(request, "features.html")
+
+# def datatable():
+#     if request.is_ajax() and request.method == "POST":
+# 			datatables = request.POST
+# 			# print(datatables)
+# 			draw = int(datatables.get('draw'))
+# 			start = int(datatables.get('start'))
+# 			length = int(datatables.get('length'))
+# 			over_all_search = datatables.get('search[value]')
+
+# 			customer_names=datatables.get("columns[1][search][value]", None)
+# 			customer_group=datatables.get("columns[2][search][value]", None)
+# 			phone_nos=datatables.get("columns[3][search][value]",None)
+# 			email=datatables.get("columns[4][search][value]",None)
+# 			location=datatables.get("columns[5][search][value]",None)
+
+# 			# print(customer_names,customer_group,phone_nos,email,location)
+
+# 			advance_filter= Q()
+# 			if customer_names:
+# 				advance_filter &=Q(customer_name__icontains=customer_names)
+# 			# if customer_group:
+# 			# 	advance_filter &=Q(new_customer_groups__group_name__icontains =customer_group)
+# 			if phone_nos:
+# 				advance_filter &=Q(phone_no__icontains=phone_nos)
+# 			if email:
+# 				advance_filter &=Q(email__icontains=email)
+# 			if location:
+# 				advance_filter &=Q(area_building__icontains=location)
+			
+# 			if over_all_search:
+# 				advance_filter |=Q(customer_name__icontains=over_all_search) | Q(phone_no__icontains=over_all_search) | Q(email__icontains=over_all_search) | Q(area_building__icontains=over_all_search)
+		
+# 			if over_all_search or customer_names or customer_group or phone_nos or email or location:
+# 				customers_obj=customers_obj_with_group.filter(
+# 															advance_filter
+# 														).values("id","customer_name","phone_no","email","area_building","new_customer_groups__group_name")
+# 				customer_count=customers_obj.count()
+
+# 			page_number = start / length + 1
+
+# 			paginator = Paginator(customers_obj, length)
+
+# 			try:
+# 				object_list = paginator.page(page_number).object_list
+# 			except PageNotAnInteger:
+# 				object_list = paginator.page(1).object_list
+# 			except EmptyPage:
+# 				object_list = paginator.page(paginator.num_pages).object_list
+					
+
+# 			data={				
+# 				'draw': draw,
+# 				'recordsTotal': customer_count,   # draw, recordssTotal, recordsFilter is use for datatables 
+# 				'recordsFiltered': customer_count,
+# 				"customers_obj" : list(object_list)
+# 			}
+			
+# 			return JsonResponse(data,safe=False)
+#     pass

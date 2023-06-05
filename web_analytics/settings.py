@@ -144,5 +144,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # MAXMIND="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"
 
 CRONJOBS = [
-    ('14 12 * * 0,3', 'web_analytics.cron.fetch_and_update_geolite_data_for_city_and_country', '> ' + os.path.join(GEOIP_PATH,'geoip_update.log' + ' 2>&1 ')),
+    ('14 12 * * 0,3', 'web_analytics.cron.fetch_and_update_geolite_data_for_city_and_country', '> ' + os.path.join(GEOIP_PATH,'geoip_update.log' + ' 2>&1 ')), # will run at 12:14 PM (noon) on Sundays and Wednesdays.
 ]

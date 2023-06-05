@@ -3,8 +3,8 @@
 
 <section>
     <div class="row offset-md-1">
-        {% comment %} <div class="col-5">Total duration ({{total_duration_sum}})</div> {% endcomment %}
-        {% comment %} <div class="col-5">Ip_address ({{total_address}})</div> {% endcomment %}
+        <div class="col-5">Page URL ({{url}})</div>
+        <div class="col-5">Type ({{type}})</div>
         {% comment %} <div class="col-4">gfhhfh</div> {% endcomment %}
     </div>
     <div>
@@ -13,20 +13,14 @@
                 <table class="table table-striped table-hover">
                     <tr>
                         <th>Ip_address</th>
-                        <th>Duration</th>
+                        <th>Duration(sec)</th>
                         <th>Timestamp</th>
-                        <th>Url</th>
-                        <th>Order</th>
-                        <th>Type</th>
                     </tr>
-                    {% for user in user_activity %}
+                    {% for user in hit_exit_ip_list %}
                         <tr>
                             <td>{{ user.ip_address}}</td>
                             <td>{{ user.duration}}</td>
                             <td>{{ user.timestamp}}</td>
-                            <td><a href="{{user.url}}">{{ user.url}}</a></td>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ user.page_type }}</td>
                         </tr>
                     {% endfor %}
         
