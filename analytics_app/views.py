@@ -8,6 +8,7 @@ from django.db.models import Sum, Count,F ,Min, Max, Q, Case, When , IntegerFiel
 
 @csrf_exempt
 def analytics_data(request):
+    print("user agents details full request ======",request.META.get('HTTP_USER_AGENT', ''))
     ip_address = get_client_ip(request)
     duration = request.POST['duration']
     url= request.POST["url"]
@@ -142,7 +143,22 @@ def dashboard(request):
     except Exception as e:
         print(f"Error in dashboard {str(e)}")
         total =[]
-
+    
+    try:
+        total_hit_exit = VisitorActivity.objects.aggregate(
+                                                    hit_count= Coalesce(Sum(
+                                                        Case(When(page_type= VisitorActivity.HIT, then= 1), default= 0, output_field=IntegerField())
+                                                    ),0),
+                                                    exit_count= Coalesce(Sum(
+                                                        Case(When(page_type= VisitorActivity.EXIT, then= 1), default= 0, output_field=IntegerField())
+                                                    ),0)
+                                                )
+    except Exception as e:
+        print(f"error in hit and exit == {str(e)}")
+        total_hit_exit =[]
+    
+    total_hit = total_hit_exit.get("hit_count")
+    total_exit = total_hit_exit.get("exit_count")
     total_duration_sum = total.get('total_duration_sum')
     total_address = total.get('total_address')
 
