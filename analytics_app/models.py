@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.gis.geoip2 import GeoIP2
-from user_agents import parse
 
 import requests
 
@@ -30,7 +29,7 @@ def get_geoip_info(ip_address):
     except Exception as e:
         print(f"Error retrieving geolocation: {str(e)}")
         return None
-
+ 
 class VisitorActivity(models.Model):
     HIT = "HIT"
     EXIT = "EXIT"
@@ -45,9 +44,22 @@ class VisitorActivity(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     url = models.CharField(max_length=255)
     duration = models.IntegerField(null=True, blank=True)
-    device_type = models.CharField(max_length=255, null=True, blank=True)
+    device = models.CharField(max_length=255, null=True, blank=True)
+    device_family = models.CharField(max_length=255, null=True, blank=True)
+
     browser = models.CharField(max_length=255, null=True, blank=True)
+    browser_family = models.CharField(max_length=255, null=True, blank=True)
+    browser_version = models.CharField(max_length=255, null=True, blank=True)
+
     os = models.CharField(max_length=255, null=True, blank=True)
+    os_family = models.CharField(max_length=255, null=True, blank=True)
+    os_version = models.CharField(max_length=255, null=True, blank =True)
+
+    is_mobile = models.BooleanField(default=False)
+    is_tablet = models.BooleanField(default=False)
+    is_pc = models.BooleanField(default=False)
+    is_bot = models.BooleanField(default=False)
+
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     city = models.CharField(max_length=255, null=True, blank=True)
     region = models.CharField(max_length=255, null=True, blank=True)
@@ -63,10 +75,23 @@ class VisitorActivity(models.Model):
         else:
             request = None
 
-        user_agent = parse(request.META.get('HTTP_USER_AGENT', '')) if request else None
-        self.device_type = user_agent.device.family if user_agent else None
-        self.browser = user_agent.browser.family if user_agent else None
-        self.os = user_agent.os.family if user_agent else None
+        self.device =            request.user_agent.device
+        self.device_family =     request.user_agent.device.family
+        self.browser =           request.user_agent.browser
+        self.browser_family =    request.user_agent.browser.family
+        self.browser_version =   request.user_agent.browser.version_string
+        self.os =                request.user_agent.os
+        self.os_family =         request.user_agent.os.family
+        self.os_version =        request.user_agent.os.version_string
+        self.is_mobile =         request.user_agent.is_mobile
+        self.is_tablet =         request.user_agent.is_tablet
+        self.is_pc =             request.user_agent.is_pc
+        self.is_bot =            request.user_agent.is_bot
+
+        # user_agent = parse(request.META.get('HTTP_USER_AGENT', '')) if request else None
+        # self.device_type = user_agent.device.family if user_agent else None
+        # self.browser = user_agent.browser.family if user_agent else None
+        # self.os = user_agent.os.family if user_agent else None
 
         ip_address = get_client_ip(request)
         
