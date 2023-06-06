@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "django_crontab",
-    'user_agents',
     "django_user_agents",
     # 'django.contrib.gis',
     'analytics_app',

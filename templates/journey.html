@@ -12,21 +12,33 @@
             <div class="col-md-10 offset-md-1">
                 <table class="table table-striped table-hover">
                     <tr>
+                        <th>sequence</th>
                         <th>Ip_address</th>
-                        <th>Duration</th>
-                        <th>Timestamp</th>
+                        <th>Date</th>
+                        <th>Time</th>
                         <th>Url</th>
-                        <th>Order</th>
+                        <th>Duration<br>(seconds)</th>
                         <th>Type</th>
+                        <th>Browser</th>
+                        <th>Device</th>
+                        <th>Os</th>
+                        <th>Is_bot</th>
+                        <th>Device Type</th>
                     </tr>
                     {% for user in user_activity %}
                         <tr>
-                            <td>{{ user.ip_address}}</td>
-                            <td>{{ user.duration}}</td>
-                            <td>{{ user.timestamp}}</td>
-                            <td><a href="{{user.url}}">{{ user.url}}</a></td>
                             <td>{{ forloop.counter }}</td>
+                            <td>{{ user.ip_address}}</td>
+                            <td>{{ user.timestamp|date}}</td>
+                            <td>{{ user.timestamp|time}}</td>
+                            <td><a href="{{user.url}}">{{ user.url}}</a></td>
+                            <td>{{ user.duration}}</td>
                             <td>{{ user.page_type }}</td>
+                            <td>{{ user.browser_family}}</td>
+                            <td>{{ user.device_family}}</td>
+                            <td>{{ user.os_family}}</td>
+                            <td>{{ user.is_bot}}</td>
+                            <td>{{ user.device_type}}</td>
                         </tr>
                     {% endfor %}
         

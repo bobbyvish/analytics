@@ -3,7 +3,6 @@
 
 <section>
     <div class="row offset-md-1">
-        <div class="col-5">Page URL ({{url}})</div>
         <div class="col-5">Type ({{type}})</div>
         {% comment %} <div class="col-4">gfhhfh</div> {% endcomment %}
     </div>
@@ -15,6 +14,7 @@
                         <th>Ip_address</th>
                         <th>Date</th>
                         <th>Time</th>
+                        <th>Url</th>
                         <th>Duration(seconds)</th>
                         <th>Browser</th>
                         <th>Device</th>
@@ -27,6 +27,7 @@
                             <td><a href="{% url 'journey' %}?ip_address={{user.ip_address}}&date={{user.date|date:'Y-m-d'}}"> {{ user.ip_address}} </a> </td>
                             <td>{{ user.timestamp | date}}</td>
                             <td>{{ user.timestamp | time}}</td>
+                            <td>{{user.url}}</td>
                             <td>{{ user.duration}}</td>
                             <td>{{ user.browser_family}}</td>
                             <td>{{ user.device_family}}</td>
