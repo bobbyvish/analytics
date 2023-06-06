@@ -14,4 +14,5 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name="dashboard"),
     path('journey/details', views.journey, name="journey"),
     path('page-url/details', views.hit_exit_details, name="hit_exit_details"),
+    path('page-type/details', views.page_type_details, name="page_type_details"),
 ]

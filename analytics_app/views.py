@@ -4,7 +4,8 @@ from .models import VisitorActivity , get_client_ip
 from django.views.decorators.csrf import csrf_exempt
 import datetime
 from django.db.models.functions import TruncDate, Coalesce
-from django.db.models import Sum, Count,F ,Min, Max, Q, Case, When , IntegerField
+from django.db.models import Sum, Count,F ,Min, Max, Q, Case, When 
+from django.db import models
 
 @csrf_exempt
 def analytics_data(request):
@@ -76,32 +77,77 @@ def dashboard(request):
     }
 
     try:
-        user_activity = VisitorActivity.objects.annotate(date = TruncDate("timestamp")).values("date","ip_address","browser").annotate(duration_sum = Sum("duration")).values("date","ip_address","duration_sum","browser")
+        subquery = VisitorActivity.objects.filter(
+                                            ip_address = models.OuterRef("ip_address"),
+                                            page_type = VisitorActivity.HIT,
+                                        ).values("timestamp")[:1]
+        
+        user_activity = VisitorActivity.objects.annotate(
+                                                    date = TruncDate("timestamp")
+                                                ).values(
+                                                    "date","ip_address","browser_family"
+                                                ).annotate(
+                                                    duration_sum = Sum("duration"),
+                                                    hit_time = Min(
+                                                                Case(
+                                                                    When(page_type = VisitorActivity.HIT, then=F("timestamp")),
+                                                                    default=None, 
+                                                                    output_field=models.DateTimeField()
+                                                                )
+                                                            ),
+                                                    exit_time = Max(
+                                                                Case(
+                                                                    When(page_type = VisitorActivity.EXIT, then=F("timestamp")),
+                                                                    default=None, 
+                                                                    output_field=models.DateTimeField()
+                                                                )
+                                                            ),
+                                                    device_type = Case(
+                                                                    When(is_mobile=True, then=models.Value("Mobile", output_field = models.CharField())),
+                                                                    When(is_pc= True, then=models.Value("Pc", output_field = models.CharField())),
+                                                                    When(is_tablet = True, then=models.Value("Tablet", output_field = models.CharField())),
+                                                                    default=None, 
+                                                                    output_field=models.CharField()
+                                                                )
+                                                ).values(
+                                                    "date",
+                                                    "ip_address",
+                                                    "hit_time",
+                                                    "exit_time",
+                                                    "duration_sum",
+                                                    "browser_family",
+                                                    "device_family",
+                                                    "os_family",
+                                                    "is_bot",
+                                                    "device_type"
+                                                )
     except Exception as e:
         print(f"Error in dashboard user_activity {str(e)}")
         user_activity =[]
 
-    try:
-        page_wise_hit = VisitorActivity.objects.filter(page_type = VisitorActivity.HIT).values("url").annotate(count = Count("id")).order_by("-count")
-    except:
-        page_wise_hit = []
+    print("++++++++++++++++++++++++++++++++",user_activity)
 
-    print("page_wise_hit is ",page_wise_hit)
+    # try:
+    #     page_wise_hit = VisitorActivity.objects.filter(page_type = VisitorActivity.HIT).values("url").annotate(count = Count("id")).order_by("-count")
+    # except:
+    #     page_wise_hit = []
 
-    try:
-        page_wise_exit = VisitorActivity.objects.filter(page_type = VisitorActivity.EXIT).values("url").annotate(count = Count("id")).order_by("-count")
-    except:
-        page_wise_exit = []
+    # print("page_wise_hit is ",page_wise_hit)
 
-    print("page_wise_exit is ",page_wise_exit)
+    # try:
+    #     page_wise_exit = VisitorActivity.objects.filter(page_type = VisitorActivity.EXIT).values("url").annotate(count = Count("id")).order_by("-count")
+    # except:
+    #     page_wise_exit = []
+
+    # print("page_wise_exit is ",page_wise_exit)
 
     try:
         page_wise_hit_exit = VisitorActivity.objects.filter(page_type__in=[VisitorActivity.HIT, VisitorActivity.EXIT]).values("url").annotate(
                                                                     hit= Coalesce(Sum(
-                                                                        Case(When(page_type = VisitorActivity.HIT, then = 1), default =0 , output_field = IntegerField())
+                                                                        Case(When(page_type = VisitorActivity.HIT, then = 1), default =0 , output_field = models.IntegerField())
                                                                     ),0),
                                                                     exit= Coalesce(Sum(
-                                                                        Case(When(page_type = VisitorActivity.EXIT, then = 1), default =0 , output_field = IntegerField())
+                                                                        Case(When(page_type = VisitorActivity.EXIT, then = 1), default =0 , output_field = models.IntegerField())
                                                                     ),0),
                                                                     duration = Sum("duration")
                                                                 ).values("url","hit","exit","duration")
@@ -124,41 +170,47 @@ def dashboard(request):
     
     print(f"page_name_hit_exit is {page_name_hit_exit}")
 
-    try:
-        country_wise_hit_exit = VisitorActivity.objects.filter(page_type__in=[VisitorActivity.HIT, VisitorActivity.EXIT]).values("url").annotate(
-                                                                    hit= Coalesce(Sum(
-                                                                        Case(When(page_type = VisitorActivity.HIT, then = 1), default =0 , output_field = IntegerField())
-                                                                    ),0),
-                                                                    exit= Coalesce(Sum(
-                                                                        Case(When(page_type = VisitorActivity.EXIT, then = 1), default =0 , output_field = IntegerField())
-                                                                    ),0),
-                                                                    duration = Sum("duration")
-                                                                )
-    except Exception as e:
-        print("error in page wise hit and exit ",str(e))
-        country_wise_hit_exit =[]
+    # try:
+    #     country_wise_hit_exit = VisitorActivity.objects.filter(page_type__in=[VisitorActivity.HIT, VisitorActivity.EXIT]).values("url").annotate(
+    #                                                                 hit= Coalesce(Sum(
+    #                                                                     Case(When(page_type = VisitorActivity.HIT, then = 1), default =0 , output_field = models.IntegerField())
+    #                                                                 ),0),
+    #                                                                 exit= Coalesce(Sum(
+    #                                                                     Case(When(page_type = VisitorActivity.EXIT, then = 1), default =0 , output_field = models.IntegerField())
+    #                                                                 ),0),
+    #                                                                 duration = Sum("duration")
+    #                                                             )
+    # except Exception as e:
+    #     print("error in page wise hit and exit ",str(e))
+    #     country_wise_hit_exit =[]
 
     try:
-        total = VisitorActivity.objects.values("ip_address").annotate(total_duration=Sum("duration")).aggregate(total_duration_sum=Sum("total_duration"), total_address=Count("ip_address"))
+        total = VisitorActivity.objects.values(
+                                            "ip_address"
+                                        ).annotate(
+                                            total_duration=Sum("duration")
+                                        ).aggregate(
+                                            total_duration_sum=Sum("total_duration"),
+                                            total_address=Count("ip_address"))
     except Exception as e:
         print(f"Error in dashboard {str(e)}")
         total =[]
     
     try:
-        total_hit_exit = VisitorActivity.objects.aggregate(
+        total_page_type = VisitorActivity.objects.aggregate(
                                                     hit_count= Coalesce(Sum(
-                                                        Case(When(page_type= VisitorActivity.HIT, then= 1), default= 0, output_field=IntegerField())
+                                                        Case(When(page_type= VisitorActivity.HIT, then= 1), default= 0, output_field=models.IntegerField())
                                                     ),0),
                                                     exit_count= Coalesce(Sum(
-                                                        Case(When(page_type= VisitorActivity.EXIT, then= 1), default= 0, output_field=IntegerField())
+                                                        Case(When(page_type= VisitorActivity.EXIT, then= 1), default= 0, output_field=models.IntegerField())
                                                     ),0)
                                                 )
     except Exception as e:
         print(f"error in hit and exit == {str(e)}")
-        total_hit_exit =[]
+        total_page_type =[]
     
-    total_hit = total_hit_exit.get("hit_count")
-    total_exit = total_hit_exit.get("exit_count")
+    total_hit = total_page_type.get("hit_count")
+    total_exit = total_page_type.get("exit_count")
     total_duration_sum = total.get('total_duration_sum')
     total_address = total.get('total_address')
 
@@ -166,7 +218,29 @@ def dashboard(request):
 
 def journey(request):
     try:
-        user_activity = VisitorActivity.objects.filter(ip_address= request.GET.get("ip_address"), timestamp__date = request.GET.get("date")).values("ip_address","timestamp","duration","url","page_type")
+        user_activity = VisitorActivity.objects.filter(
+                                                    ip_address= request.GET.get("ip_address"),
+                                                    timestamp__date = request.GET.get("date")
+                                                ).annotate(
+                                                device_type = Case(
+                                                                    When(is_mobile=True, then=models.Value("Mobile", output_field = models.CharField())),
+                                                                    When(is_pc= True, then=models.Value("Pc", output_field = models.CharField())),
+                                                                    When(is_tablet = True, then=models.Value("Tablet", output_field = models.CharField())),
+                                                                    default=None, 
+                                                                    output_field=models.CharField()
+                                                                )
+                                                ).values(
+                                                    "ip_address",
+                                                    "timestamp",
+                                                    "duration",
+                                                    "url",
+                                                    "page_type",
+                                                    "browser_family",
+                                                    "device_family",
+                                                    "os_family",
+                                                    "is_bot",
+                                                    "device_type"
+                                                )
     except Exception as e:
         print("raise exception in journey",str(e))
         user_activity = []
@@ -176,13 +250,35 @@ def journey(request):
 def hit_exit_details(request):
     url = request.GET.get("url")
     type = request.GET.get('type')
+
     print(f"url is {url} and type is {type}")
     try:
-        hit_exit_ip_list = VisitorActivity.objects.filter(url = url , page_type= type).values("ip_address","timestamp", "duration")
+        hit_exit_ip_list = VisitorActivity.objects.filter(
+                                                    url = url , 
+                                                    page_type= type
+                                                ).annotate(
+                                                    device_type = Case(
+                                                            When(is_mobile=True, then=models.Value("Mobile", output_field = models.CharField())),
+                                                            When(is_pc= True, then=models.Value("Pc", output_field = models.CharField())),
+                                                            When(is_tablet = True, then=models.Value("Tablet", output_field = models.CharField())),
+                                                            default=None, 
+                                                            output_field=models.CharField()
+                                                        )
+                                                ).values(
+                                                    "ip_address",
+                                                    "timestamp", 
+                                                    "duration",
+                                                    "browser_family",
+                                                    "device_family",
+                                                    "os_family",
+                                                    "is_bot",
+                                                    "device_type"
+                                                )
     except Exception as e:
         print("raise exception in detail_hit_exit", str(e))
         hit_exit_ip_list = []
     print(f"hit and exit ip list {hit_exit_ip_list}")
+    
 
     # if type == VisitorActivity.EXIT:
     #     try:
@@ -191,6 +287,36 @@ def hit_exit_details(request):
     #         print("raise exception in detail_hit_exit", str(e))
         
     return render(request, "hit_exit_details.html", locals())
+
+def page_type_details(request):
+    type = request.GET.get('type')
+    try:
+        hit_exit_ip_list = VisitorActivity.objects.filter(
+                                                        page_type= type
+                                                ).annotate(
+                                                        device_type = Case(
+                                                                When(is_mobile=True, then=models.Value("Mobile", output_field = models.CharField())),
+                                                                When(is_pc= True, then=models.Value("Pc", output_field = models.CharField())),
+                                                                When(is_tablet = True, then=models.Value("Tablet", output_field = models.CharField())),
+                                                                default=None, 
+                                                                output_field=models.CharField()
+                                                        )
+                                                ).values(
+                                                    "ip_address",
+                                                    "timestamp",
+                                                    "url",
+                                                    "duration",
+                                                    "browser_family",
+                                                    "device_family",
+                                                    "os_family",
+                                                    "is_bot",
+                                                    "device_type"
+                                                )
+    except Exception as e:
+        print("raise exception in detail_hit_exit" + str(e))
+        hit_exit_ip_list = []
+    print(f"hit and exit ip list {hit_exit_ip_list}")
+    return render(request, "page_type_details.html", locals())
 
 def index(request):
 
