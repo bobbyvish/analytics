@@ -49,6 +49,8 @@
                         <th>Os</th>
                         <th>Is_bot</th>
                         <th>Device Type</th>
+                        <th>City</th>
+                        <th>Country</th>
                     </tr>
                     {% for user in user_activity %}
                         <tr>
@@ -62,6 +64,8 @@
                             <td>{{ user.os_family}}</td>
                             <td>{{ user.is_bot}}</td>
                             <td>{{ user.device_type}}</td>
+                            <td>{{ user.city}}</td>
+                            <td>{{ user.country}}</td>
                         </tr>
                     {% endfor %}
         
