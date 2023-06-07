@@ -97,7 +97,7 @@ class VisitorActivity(models.Model):
         
         geoip_info = get_geoip_info(ip_address)
         if geoip_info:
-            self.city =      geoip_info.get("city")
+            self.city =      geoip_info.get("city_name")
             self.region =    geoip_info.get("region")
             self.country =   geoip_info.get("country_name")
             self.latitude =  geoip_info.get("latitude")

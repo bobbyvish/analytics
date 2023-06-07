@@ -135,3 +135,7 @@ GitHub.sublime-settings
 !.vscode/launch.json 
 !.vscode/extensions.json 
 .history
+
+#geoip
+geoip/GeoLite2-City.mmdb
+geoip/GeoLite2-Country.mmdb

@@ -119,7 +119,9 @@ def dashboard(request):
                                                     "device_family",
                                                     "os_family",
                                                     "is_bot",
-                                                    "device_type"
+                                                    "device_type",
+                                                    "city",
+                                                    "country"
                                                 )
     except Exception as e:
         print(f"Error in dashboard user_activity {str(e)}")
@@ -239,7 +241,9 @@ def journey(request):
                                                     "device_family",
                                                     "os_family",
                                                     "is_bot",
-                                                    "device_type"
+                                                    "device_type",
+                                                    "city",
+                                                    "country"
                                                 )
     except Exception as e:
         print("raise exception in journey",str(e))
@@ -272,7 +276,9 @@ def hit_exit_details(request):
                                                     "device_family",
                                                     "os_family",
                                                     "is_bot",
-                                                    "device_type"
+                                                    "device_type",
+                                                    "city",
+                                                    "country"
                                                 )
     except Exception as e:
         print("raise exception in detail_hit_exit", str(e))
@@ -310,7 +316,9 @@ def page_type_details(request):
                                                     "device_family",
                                                     "os_family",
                                                     "is_bot",
-                                                    "device_type"
+                                                    "device_type",
+                                                    "city",
+                                                    "country"
                                                 )
     except Exception as e:
         print("raise exception in detail_hit_exit" + str(e))
