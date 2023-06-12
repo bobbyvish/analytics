@@ -13,7 +13,7 @@ def analytics_data(request):
     ip_address = get_client_ip(request)
     duration = request.POST['duration']
     url= request.POST["url"]
-    print(f"duration is {duration} and path is {request.path}")
+    print(f"duration is {duration} and path is {url}")
 
     try:
         user_activity_obj = VisitorActivity.objects.filter(ip_address=ip_address, timestamp__date = datetime.datetime.today())
