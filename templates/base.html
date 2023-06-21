@@ -28,7 +28,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
-<script>
+<!-- <script>
 
   var startTime;
 
@@ -119,6 +119,99 @@
   // checkActivity(); //call
 
 
+</script> -->
+
+
+<script>
+  ignore_url = ["http://192.168.1.15:8500/analytics/dashboard/"]
+  // var storedStartTime = localStorage.getItem('startTime')
+  var currentPage = window.location.href
+  // var startTime = storedStartTime ? parseFloat(storedStartTime) : performance.now();
+  var startTime =  performance.now()
+  // localStorage.setItem('startTime', startTime.toString());
+  
+  function sendData(url, time){
+    console.log("sendData")
+    if (time > 2 && !ignore_url.includes(url)){
+      if(navigator.sendBeacon){
+        console.log("beacon call")
+        var formData = new FormData();
+        // formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        formData.append('url',url)
+        formData.append('duration',time)
+        // var data = JSON.stringify({url: url, duration: time});
+        navigator.sendBeacon('{% url "analytics_data" %}', formData)
+      }else{
+        console.log("http callded")
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '{% url "analytics_data" %}', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(data);
+      }
+    }
+  }
+
+  // window.addEventListener('unload', function () {
+  //   var totalTime = math.round((performance.now() - startTime)/1000);
+  //   // var totalTime = performance.now() - startTime
+  //   console.log("unload",totalTime)
+  //   sendData(currentPage, totalTime);
+
+  //   // Clear the stored start time from localStorage
+  //   localStorage.removeItem('startTime');
+    
+  // });
+
+  // window.addEventListener('beforeunload', function (event) {
+  //   var totalTime = performance.now() - startTime;
+  //   console.log("unload", totalTime);
+  //   sendData(currentPage, totalTime);
+
+  //   // Clear the stored start time from localStorage
+  //   localStorage.removeItem('startTime');
+
+  //   // Cancel the event to prevent the browser from displaying a confirmation dialog
+  //   event.preventDefault();
+  //   // Chrome requires the returnValue property to be set
+  //   event.returnValue = '';
+  // });
+
+  window.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === "hidden"){
+      var totalTime = Math.round((performance.now() - startTime)/1000);
+      console.log("visibilitychange",totalTime)
+      sendData(currentPage, totalTime);
+      startTime = performance.now()
+      // localStorage.removeItem('startTime');
+    }
+  })
+
+  // if (window.performance) {
+  // console.info("window.performance works fine on this browser");
+  // }
+  // console.info(performance.navigation.type);
+  // if (performance.navigation.type == performance.navigation.TYPE_RELOAD) {
+  //   reload_data= localStorage.getItem("reload")
+  //   console.log(reload_data);
+  //   console.info( "This page is reloaded" );
+  // } else if (performance.navigation.type == performance.navigation.TYPE_NAVIGATE) {
+  //   console.info( "This page is navigate");
+  //   console.log(currentPage)
+  // }else{
+  //   console.info("thie page in not reloaded")
+  // }
+
+
+  // if(event.persistent || (event.performance && event.performance.navigator.type ===performance.navigation.TYPE_NAVIGATE)) {
+    //     var totalTime = performance.now() - startTime;
+    //     console.log("navigate",totalTime)
+    //     localStorage.removeItem("reload")
+    //   }else if(event.persistent || (event.performance && event.performance.navigator.type ===performance.navigation.TYPE_RELOAD)){
+    //     localStorage.setItem("reload",true)
+    //     console.log("reload",localStorage.getItem("reload"))
+    //   }else{
+    //     localStorage.setItem("tab closed ",true)
+    //   }
 </script>
 </body>
 </html>
