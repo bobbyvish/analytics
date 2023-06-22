@@ -137,5 +137,10 @@ GitHub.sublime-settings
 .history
 
 #geoip
+<<<<<<< HEAD
+geoip/GeoLite2-City.mmdb
+geoip/GeoLite2-Country.mmdb
+=======
 GeoLite2-City.mmdb
 GeoLite2-Country.mmdb
+>>>>>>> main
