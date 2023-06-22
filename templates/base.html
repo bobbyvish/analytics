@@ -28,101 +28,9 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
-<!-- <script>
-
-  var startTime;
-
-  ignore_url = ["http://192.168.1.15:8500/analytics/dashboard/"]
-
-  function setData(spend){
-    localStorage.setItem("spend", JSON.stringify(spend))
-  }
-
-  function getData(){
-    return localStorage.getItem("spend")
-  }
-
-  function removeData(){
-    localStorage.removeItem("spend")
-  }
-
-  function startInitialTimer(){
-    startTime = new Date()
-  }
-
-
-
-  function analyticsApiCall() {
-    console.log("load called")
-
-    startInitialTimer()
-
-    const spend = getData()
-    const data = JSON.parse(spend)
-
-    console.log(data)
-
-    if (data.duration > 2 && !ignore_url.includes(data.url)){
-      $.ajax({
-        url: '{% url "analytics_data" %}', // Replace with your actual Django backend endpoint URL
-        method: 'POST',
-        data: JSON.parse(spend),
-        success: function(response) {
-        },
-        error: function(xhr, textStatus, error) {
-          console.error('Error sending duration:', error);
-        }
-      });
-    }
-  }
-
-  function setTimerData() {
-    console.log("unload called")
-
-    var endTime = new Date();
-    var duration = Math.round((endTime - startTime)/1000); // Duration in seconds
-    var url = window.location.href
-
-    const spend = {
-      duration : duration,
-      url : url
-    }
-
-    setData(spend)
-  }
-
-  // function userInactive(amountOfTime){
-  //   setTimerData()
-  //   analyticsApiCall()
-  // }
-
-
-  // Add event listeners to start and stop the timer
-  window.addEventListener('load', analyticsApiCall);
-  window.addEventListener('beforeunload', setTimerData);
-  
-  // AmountOfTime = 30 * 60000 //30 min
-
-  // var timeout = false;
-
-  // function checkActivity() {
-
-  //   clearTimeout(timeout); // will clear that timeout id 
-  //   timeout = setTimeout(userInactive(AmountOfTime), AmountOfTime); //return a timeout id
-    
-  // }
-
-  // document.addEventListener('keydown', checkActivity);
-  // document.addEventListener('mousedown', checkActivity);
-  // document.addEventListener('mousemove', checkActivity);
-
-  // checkActivity(); //call
-
-
-</script> -->
-
-
+<script src="https://cdn.jsdelivr.net/npm/uuid@8.3.2/dist/umd/uuidv1.min.js"></script>
 <script>
+
   ignore_url = ["http://192.168.1.15:8500/analytics/dashboard/"]
   // var storedStartTime = localStorage.getItem('startTime')
   var currentPage = window.location.href
@@ -130,15 +38,94 @@
   var startTime =  performance.now()
   // localStorage.setItem('startTime', startTime.toString());
   
+  // function getMacAddressCookie() {
+  //   var cookies = document.cookie.split(';');
+  //   for (var i = 0; i < cookies.length; i++) {
+  //       var cookie = cookies[i].trim();
+  //       if (cookie.indexOf('mac_address=') === 0) {
+  //           return cookie.substring('mac_address='.length, cookie.length);
+  //         }
+  //     }
+  //     return null;
+  // }
+
+  // var macAddress = getMacAddressCookie();
+  // if (macAddress) {
+  //   console.log("through cookie",macAddress); // Use the MAC address value as needed
+  // } else {
+  //   console.log('MAC address cookie not found');
+  // }
+
+  //   // Generate UUID
+  // function generateUUID() {
+  //   let d = new Date().getTime();
+  //   const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  //     const r = (d + Math.random() * 16) % 16 | 0;
+  //     d = Math.floor(d / 16);
+  //     return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  //   });
+  //   return uuid;
+  // }
+
+  // // Set the UUID as a cookie
+  // function setCookie(name, value, days) {
+  //   const expires = new Date();
+  //   expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+  //   document.cookie = name + '=' + value + ';expires=' + expires.toUTCString() + ';path=/';
+  // }
+
+  // // Generate UUID and set it as a cookie
+  // const mac_address = generateUUID();
+  // setCookie('mac_address', mac_address, 365);
+
+  // console.log("new mac address is generated",mac_address);
+
+  function getCookie(name) {
+    const cookies = document.cookie.split(';');
+    for (const cookie of cookies) {
+      const [cookieName, cookieValue] = cookie.trim().split('=');
+      if (cookieName === name) {
+        return cookieValue;
+      }
+    }
+    return null;
+  }
+
+  function generateUUID() {
+    let d = new Date().getTime();
+    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = (d + Math.random() * 16) % 16 | 0;
+      d = Math.floor(d / 16);
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+    return uuid;
+  }
+
+  var macAddress = getCookie('mac_address');
+
+  if (!macAddress) {
+    const newMacAddress = generateUUID();
+    console.log("Newly generated MAC address:", newMacAddress);
+
+    const expirationDays = 365;
+    const expires = new Date();
+    expires.setTime(expires.getTime() + (expirationDays * 24 * 60 * 60 * 1000));  
+    const cookieValue = `mac_address=${newMacAddress};expires=${expires.toUTCString()};path=/`;
+    document.cookie = cookieValue;
+    var macAddress = getCookie('mac_address');
+  }
+
+  console.log("mac_Address is",macAddress)
+
   function sendData(url, time){
     console.log("sendData")
     if (time > 2 && !ignore_url.includes(url)){
       if(navigator.sendBeacon){
         console.log("beacon call")
         var formData = new FormData();
-        // formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
         formData.append('url',url)
         formData.append('duration',time)
+        formData.append('mac_address',macAddress)
         // var data = JSON.stringify({url: url, duration: time});
         navigator.sendBeacon('{% url "analytics_data" %}', formData)
       }else{
@@ -151,30 +138,7 @@
     }
   }
 
-  // window.addEventListener('unload', function () {
-  //   var totalTime = math.round((performance.now() - startTime)/1000);
-  //   // var totalTime = performance.now() - startTime
-  //   console.log("unload",totalTime)
-  //   sendData(currentPage, totalTime);
 
-  //   // Clear the stored start time from localStorage
-  //   localStorage.removeItem('startTime');
-    
-  // });
-
-  // window.addEventListener('beforeunload', function (event) {
-  //   var totalTime = performance.now() - startTime;
-  //   console.log("unload", totalTime);
-  //   sendData(currentPage, totalTime);
-
-  //   // Clear the stored start time from localStorage
-  //   localStorage.removeItem('startTime');
-
-  //   // Cancel the event to prevent the browser from displaying a confirmation dialog
-  //   event.preventDefault();
-  //   // Chrome requires the returnValue property to be set
-  //   event.returnValue = '';
-  // });
 
   window.addEventListener('visibilitychange', function(){
     if(document.visibilityState === "hidden"){
@@ -186,32 +150,7 @@
     }
   })
 
-  // if (window.performance) {
-  // console.info("window.performance works fine on this browser");
-  // }
-  // console.info(performance.navigation.type);
-  // if (performance.navigation.type == performance.navigation.TYPE_RELOAD) {
-  //   reload_data= localStorage.getItem("reload")
-  //   console.log(reload_data);
-  //   console.info( "This page is reloaded" );
-  // } else if (performance.navigation.type == performance.navigation.TYPE_NAVIGATE) {
-  //   console.info( "This page is navigate");
-  //   console.log(currentPage)
-  // }else{
-  //   console.info("thie page in not reloaded")
-  // }
 
-
-  // if(event.persistent || (event.performance && event.performance.navigator.type ===performance.navigation.TYPE_NAVIGATE)) {
-    //     var totalTime = performance.now() - startTime;
-    //     console.log("navigate",totalTime)
-    //     localStorage.removeItem("reload")
-    //   }else if(event.persistent || (event.performance && event.performance.navigator.type ===performance.navigation.TYPE_RELOAD)){
-    //     localStorage.setItem("reload",true)
-    //     console.log("reload",localStorage.getItem("reload"))
-    //   }else{
-    //     localStorage.setItem("tab closed ",true)
-    //   }
 </script>
 </body>
 </html>
