@@ -6,17 +6,19 @@ import datetime
 from django.db.models.functions import TruncDate, Coalesce
 from django.db.models import Sum, Count,F ,Min, Max, Q, Case, When 
 from django.db import models
+import arpreq
 
 @csrf_exempt
 def analytics_data(request):
     print("user agents details full request ======",request.META.get('HTTP_USER_AGENT', ''))
     ip_address = get_client_ip(request)
-    duration = request.POST['duration']
-    url= request.POST["url"]
-    print(f"duration is {duration} and path is {url}")
+    duration = request.POST.get('duration')
+    url= request.POST.get("url")
+    mac_address = request.POST.get('mac_address')
+    print(f"ip address is {ip_address} mac_address is {mac_address} duration is {duration} and path is {url}")
 
     try:
-        user_activity_obj = VisitorActivity.objects.filter(ip_address=ip_address, timestamp__date = datetime.datetime.today())
+        user_activity_obj = VisitorActivity.objects.filter(ip_address=ip_address, mac_address=mac_address, timestamp__date = datetime.datetime.today())
         user_activity_obj_first = user_activity_obj.first()
         user_activity_obj_last = user_activity_obj.last()
         user_activity_obj_count = user_activity_obj.count()
@@ -27,7 +29,8 @@ def analytics_data(request):
                 ip_address=ip_address,
                 url=url,
                 duration=duration,
-                page_type=VisitorActivity.HIT
+                page_type=VisitorActivity.HIT,
+                mac_address = mac_address
             )
             user_activity.save(request=request)
 
@@ -43,7 +46,8 @@ def analytics_data(request):
                         ip_address=ip_address,
                         url=url,
                         duration=duration,
-                        page_type=VisitorActivity.EXIT
+                        page_type=VisitorActivity.EXIT,
+                        mac_address = mac_address
                     )
                     user_activity.save(request=request)
 
@@ -57,7 +61,8 @@ def analytics_data(request):
                         ip_address=ip_address,
                         url=url,
                         duration=duration,
-                        page_type=VisitorActivity.EXIT
+                        page_type=VisitorActivity.EXIT,
+                        mac_address = mac_address
                     )
                     user_activity.save(request=request)
        
@@ -85,7 +90,7 @@ def dashboard(request):
         user_activity = VisitorActivity.objects.annotate(
                                                     date = TruncDate("timestamp")
                                                 ).values(
-                                                    "date","ip_address","browser_family"
+                                                    "date","ip_address","mac_address"
                                                 ).annotate(
                                                     duration_sum = Sum("duration"),
                                                     hit_time = Min(
@@ -112,6 +117,7 @@ def dashboard(request):
                                                 ).values(
                                                     "date",
                                                     "ip_address",
+                                                    "mac_address",
                                                     "hit_time",
                                                     "exit_time",
                                                     "duration_sum",
@@ -222,6 +228,7 @@ def journey(request):
     try:
         user_activity = VisitorActivity.objects.filter(
                                                     ip_address= request.GET.get("ip_address"),
+                                                    mac_address = request.GET.get("mac_address"),
                                                     timestamp__date = request.GET.get("date")
                                                 ).annotate(
                                                 device_type = Case(
@@ -233,6 +240,7 @@ def journey(request):
                                                                 )
                                                 ).values(
                                                     "ip_address",
+                                                    "mac_address",
                                                     "timestamp",
                                                     "duration",
                                                     "url",
@@ -326,20 +334,38 @@ def page_type_details(request):
     print(f"hit and exit ip list {hit_exit_ip_list}")
     return render(request, "page_type_details.html", locals())
 
-def index(request):
+import uuid
 
-    return render(request, "index.html")
+def index(request):
+    
+    # 'mac_address' now contains the MAC address in the format XX:XX:XX:XX:XX:XX
+    # print(f"mac_address is {mac_address}")
+    # print(datetime.now())
+    
+    response = render(request, "index.html")
+    mac = request.COOKIES.get("mac_address")
+    if not mac:
+        expires = datetime.datetime.now() + datetime.timedelta(days=365 * 10)  # Set the expiration to 10 years from now
+        mac_address = str(uuid.uuid4())
+        print(f"generating mac address {mac_address}")
+        response.set_cookie('mac_address', mac_address, expires=expires, path='/')
+    print(f"mac adddress through cookie {mac}")
+    return response
 
 def contact(request):
+    print(f"mac_address from cookies is {request.COOKIES.get('mac_address')}")
     return render(request, "contact_us.html")
 
 def about(request):
+    print(f"mac_address from cookies is {request.COOKIES.get('mac_address')}")
     return render(request, "about.html")
 
 def pricing(request):
+    print(f"mac_address from cookies is {request.COOKIES.get('mac_address')}")
     return render(request, "price.html")
 
 def features(request):
+    print(f"mac_address from cookies is {request.COOKIES.get('mac_address')}")
     return render(request, "features.html")
 
 # def datatable():

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.gis.geoip2 import GeoIP2
+import arpreq
 
 import requests
 
@@ -67,14 +68,14 @@ class VisitorActivity(models.Model):
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
     page_type  = models.CharField(choices=page_types, max_length=10,null=True, blank=True )
-    # Add more fields as per your requirements
+    mac_address = models.CharField(max_length=255, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if 'request' in kwargs:
             request = kwargs.pop('request')
         else:
             request = None
-
+        print(f"request data inside save {request.POST.get('mac_address')}")
         self.device =            request.user_agent.device
         self.device_family =     request.user_agent.device.family
         self.browser =           request.user_agent.browser
@@ -94,8 +95,11 @@ class VisitorActivity(models.Model):
         # self.os = user_agent.os.family if user_agent else None
 
         ip_address = get_client_ip(request)
-        
-        geoip_info = get_geoip_info(ip_address)
+        try:
+            geoip_info = get_geoip_info(ip_address)
+        except Exception as e:
+            geoip_info ={}
+            
         if geoip_info:
             self.city =      geoip_info.get("city_name")
             self.region =    geoip_info.get("region")
